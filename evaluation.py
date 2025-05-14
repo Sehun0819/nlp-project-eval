@@ -36,7 +36,7 @@ def parse_arg():
         "--inspect", action="store_true", help="Inspect model size."
     )
     parser.add_argument(
-        "--task", type=str, help="Choose one of {humaneval, UNDEF, coverage}."
+        "--task", type=str, help="Choose one of {humaneval, mercury, codexglue, fuzzing}."
     )
     parser.add_argument(
         "--lang", type=str, default="python", help="Target language"
@@ -61,10 +61,10 @@ def parse_arg():
           "You should provide either '--inspect' or '--task=<task>'.")
 
     if args.task:
-        allowed_tasks = ["humaneval", "codexglue", "fuzzing"]
+        allowed_tasks = ["humaneval", "mercury", "codexglue", "fuzzing"]
         CHECK(args.task in allowed_tasks, f"Task must be one of {allowed_tasks}, received `{args.task}'")
 
-        if args.task == "humaneval":
+        if args.task == "humaneval" or args.task == "mercury":
             allowed_langs = ["python"]
         elif args.task == "codexglue":
             allowed_langs = ["python", "go", "java", "javascript", "php", "ruby"]
@@ -217,7 +217,7 @@ def main():
     args = parse_arg()
     if args.inspect:
         NOT_IMPLEMENTED()
-    elif args.task == "humaneval" or args.task.startswith("codexglue"):
+    elif args.task in ["humaneval", "mercury"] or args.task.startswith("codexglue"):
         run_LLM(
             args.gpus,
             args.model,
