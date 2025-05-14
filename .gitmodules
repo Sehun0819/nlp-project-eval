@@ -1,0 +1,4 @@
+[submodule "bigcode-evaluation-harness"]
+	path = bigcode-evaluation-harness
+	url = git@github.com:Sehun0819/bigcode-evaluation-harness.git
+	branch = nlp-project
