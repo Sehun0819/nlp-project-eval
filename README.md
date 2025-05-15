@@ -9,6 +9,8 @@ git clone https://huggingface.co/bigcode/starcoderbase-3b models/starcoderbase-3
 # Build evaluation harness
 
 ```bash
+git submodule sync && \
+git submodule update --init --recursive && \
 pushd bigcode-evaluation-harness && \
 make DOCKERFILE=Dockerfile build && \
 popd
