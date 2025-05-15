@@ -6,9 +6,18 @@ import time
 from typing import List
 
 
+def emphasize(s):
+    line = "+" + ("-" * (len(s) + 2)) + "+\n"
+    return line + "| " + s + " |\n" + line
+
+
+def NOTE(msg):
+    print(emphasize(msg))
+
+
 def CHECK(b, msg):
     if not b:
-        print(f"ERROR: {msg}")
+        print(emphasize(f"ERROR: {msg}"))
         exit(0)
 
 
@@ -25,6 +34,7 @@ def parse_arg():
         "--model",
         type=str,
         help="Directory name of target model. Should be located at this directory.",
+        required=True,
     )
     parser.add_argument(
         "--pt",
@@ -33,44 +43,50 @@ def parse_arg():
         default="model.pt",
     )
     parser.add_argument(
-        "--inspect", action="store_true", help="Inspect model size."
+        "--task",
+        type=str,
+        help="Choose one of {inspect, humaneval, mercury, codexglue, fuzzing}.",
+        required=True,
     )
-    parser.add_argument(
-        "--task", type=str, help="Choose one of {humaneval, mercury, codexglue, fuzzing}."
-    )
-    parser.add_argument(
-        "--lang", type=str, default="python", help="Target language"
-    )
+    parser.add_argument("--lang", type=str, default="python", help="Target language")
 
     # GPU Option
-    parser.add_argument("--gpus", type=str, help="Comma seperated indexes of GPU(s) to use")
+    parser.add_argument(
+        "--gpus", type=str, help="Comma seperated indexes of GPU(s) to use"
+    )
 
     # (Optional) Flags
-    parser.add_argument("--max_length_generation", type=str, default="650")
-    parser.add_argument("--temperature", type=str, default="0.8")
-    parser.add_argument("--do_sample", type=str, default="True")
-    parser.add_argument("--n_samples", type=str, default="200")
+    parser.add_argument("--temperature", type=str, default="0.2")
     parser.add_argument("--batch_size", type=str, default="64")
 
     args = parser.parse_args()
 
     if args.gpus is not None:
-        args.gpus = [s.strip() for s in args.gpus.split(",")]
+        args.gpus = [int(s.strip()) for s in args.gpus.split(",")]
 
-    CHECK((args.inpect and not args.task) or (not args.inpect and args.task),
-          "You should provide either '--inspect' or '--task=<task>'.")
+    allowed_tasks = ["inspect", "humaneval", "mercury", "codexglue", "fuzzing"]
+    CHECK(
+        args.task in allowed_tasks,
+        f"Task must be one of {allowed_tasks}, received `{args.task}'",
+    )
 
-    if args.task:
-        allowed_tasks = ["humaneval", "mercury", "codexglue", "fuzzing"]
-        CHECK(args.task in allowed_tasks, f"Task must be one of {allowed_tasks}, received `{args.task}'")
-
+    if args.task != "inspect":
         if args.task == "humaneval" or args.task == "mercury":
             allowed_langs = ["python"]
         elif args.task == "codexglue":
             allowed_langs = ["python", "go", "java", "javascript", "php", "ruby"]
-        else: ### args.task == "fuzzing" ###
+        else:  ### args.task == "fuzzing" ###
             allowed_langs = ["c", "python", "java", "go"]
-        CHECK(args.lang in allowed_langs, f"For {args.task}, target language must be one of {allowed_langs}, received `{args.lang}'")
+        CHECK(
+            args.lang in allowed_langs,
+            f"For {args.task}, target language must be one of {allowed_langs}, received `{args.lang}'",
+        )
+
+        if args.task == "mercury":
+            CHECK(
+                len(args.gpus) == 1,
+                f"For `mercury', provide only one GPU to prevent communication error. (provided GPUs={args.gpus})",
+            )
 
         if args.task == "codexglue":
             args.task = f"codexglue_code_to_text-{args.lang}"
@@ -94,6 +110,10 @@ def image_name():
     return "evaluation-harness"
 
 
+def container_name(mode, model, temperature, task, gpus):
+    return f"{mode}-{model}-t{temperature}-{task}-gpus{gpus}"
+
+
 def container_home():
     return "/app"
 
@@ -102,25 +122,33 @@ def container_output_dir():
     return "output"
 
 
-def generations_path(model: str, task: str = ""):
+def generations_path(model: str, temperature: str, task: str = ""):
     if task == "":
-        return f"{container_output_dir()}/generations_{model}.json"
+        return f"{container_output_dir()}/generations_{model}_{temperature}.json"
     else:
-        return f"{container_output_dir()}/generations_{model}_{task}.json"
+        return f"{container_output_dir()}/generations_{model}_{temperature}_{task}.json"
+
+
+def eval_path(model: str, temperature: str, task: str):
+    return f"{container_output_dir()}/eval_{model}_{temperature}_{task}.json"
 
 
 def exec_and_wait(cmd, work_dir=home_path(), env=os.environ.copy()):
     cwd = os.getcwd()
     os.chdir(work_dir)
     proc = subprocess.Popen([cmd], shell=True)
-    proc.wait()
+    _ = proc.communicate()
     os.chdir(cwd)
+    return proc.returncode
 
 
-def docker_run_cmd(gpus: List[int], model: str, task: str):
-    container_name = "cse710-project-eval"
-
-    basic_flags = ["--shm-size=32G", "-it", "--rm", f"--name {container_name}"]
+def docker_run_cmd(gpus: List[int], model: str, temperature: str, task: str, mode: str):
+    gpu_idxs = "".join([str(i) for i in gpus])
+    basic_flags = [
+        "--shm-size=32G",
+        "--rm",
+        f"--name {container_name(mode, model, temperature, task, gpu_idxs)}",
+    ]
 
     device_str = "'\"device=" + ",".join([str(i) for i in gpus]) + "\"'"
     gpu_flags = [
@@ -150,15 +178,31 @@ def docker_run_cmd(gpus: List[int], model: str, task: str):
     )
 
 
+def task_specific_flags(task):
+    if task == "humaneval":
+        return [
+            "--max_length_generation 650",
+            "--n_samples 200",
+        ]
+    elif task == "mercury":
+        return [
+            # "--load_in_4bit",
+            "--max_length_generation 2048",
+            "--n_samples 5",
+        ]
+    elif task.startswith("codexglue"):
+        return [
+            "--max_length_generation 2048",
+            "--n_samples 1",
+        ]
+
+
 def run_LLM(
     gpus: List[int],
     model: str,
     pt: str,
+    temperature: str,
     task: str,
-    max_length_generation,
-    temperature,
-    do_sample,
-    n_samples,
     batch_size,
 ):
 
@@ -166,74 +210,84 @@ def run_LLM(
     if os.path.isfile(local_pt_path):
         pt_path = f"{container_home()}/{model}/{pt}"
     else:
-        pt_path = "\"\""
+        pt_path = '""'
 
     flags = [
         f"--model {container_home()}/{model}",
         f"--pt {pt_path}",
-        f"--tasks {task}",
-        f"--max_length_generation {max_length_generation}",
         f"--temperature {temperature}",
-        f"--do_sample {do_sample}",
-        f"--n_samples {n_samples}",
+        f"--tasks {task}",
         f"--batch_size {batch_size}",
         "--trust_remote_code",
         "--generation_only",
         "--save_generations",
-        f"--save_generations_path  {generations_path(model)}",
-    ]
+        f"--save_generations_path  {generations_path(model, temperature)}",
+    ] + task_specific_flags(task)
 
     gen_cmd = "accelerate launch main.py " + " ".join(flags)
 
-    cmd = docker_run_cmd(gpus, model, task) + " " + gen_cmd
+    cmd = docker_run_cmd(gpus, model, temperature, task, "run") + " " + gen_cmd
     print(cmd)
-    exec_and_wait(cmd)
+    return exec_and_wait(cmd)
 
 
-def eval_generations(gpus: List[int], model: str, task: str, temperature, n_samples):
+def eval_generations(gpus: List[int], model: str, temperature: str, task: str):
     flags = [
         f"--model {container_home()}/{model}",
-        f"--tasks {task}",
-        f"--load_generations_path {generations_path(model, task)}",
-        "--allow_code_execution",
         f"--temperature {temperature}",
-        f"--n_samples {n_samples}",
-    ]
+        f"--tasks {task}",
+        "--allow_code_execution",
+        f"--load_generations_path {generations_path(model, temperature, task)}",
+        f"--metric_output_path {eval_path(model, temperature, task)}",
+    ] + task_specific_flags(task)
 
-    eval_cmd = (
-        "python3 main.py "
-        + " ".join(flags)
-        + f" > {container_output_dir()}/eval_{model}_{task}.txt"
+    eval_cmd = "python3 main.py " + " ".join(flags)
+
+    cmd = (
+        docker_run_cmd(gpus, model, temperature, task, "eval")
+        + ' sh -c "'
+        + eval_cmd
+        + '"'
     )
-
-    cmd = docker_run_cmd(gpus, model, task) + ' sh -c "' + eval_cmd + '"'
     print(cmd)
     exec_and_wait(cmd)
+
+
+def mk_output_dir(task):
+    dir_path = home_path() / output_dir(task)
+    if not os.path.isdir(dir_path):
+        os.mkdir(dir_path)
+
+    gitignore_path = dir_path / ".gitignore"
+    if not os.path.isfile(gitignore_path):
+        gitignore_contents = "generations_*.json\n"
+        with open(gitignore_path, "w") as f:
+            f.write(gitignore_contents)
 
 
 def main():
     start_time = time.time()
 
     args = parse_arg()
-    if args.inspect:
+
+    mk_output_dir(args.task)
+
+    if args.task == "inspect":
         NOT_IMPLEMENTED()
     elif args.task in ["humaneval", "mercury"] or args.task.startswith("codexglue"):
-        run_LLM(
+        return_code = run_LLM(
             args.gpus,
             args.model,
             args.pt,
-            args.task,
-            args.max_length_generation,
             args.temperature,
-            args.do_sample,
-            args.n_samples,
+            args.task,
             args.batch_size,
         )
-        eval_generations(args.gpus, args.model, args.task, args.temperature, args.n_samples)
+        if return_code == 0:
+            eval_generations(args.gpus, args.model, args.temperature, args.task)
     else:
         ### args.task == "fuzzing" ###
         NOT_IMPLEMENTED()
-        
 
     end_time = time.time()
     elapsed_time_s = end_time - start_time
