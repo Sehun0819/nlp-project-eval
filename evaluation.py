@@ -29,7 +29,6 @@ def NOT_IMPLEMENTED():
 def parse_arg():
     parser = argparse.ArgumentParser()
 
-    # Basic Options
     parser.add_argument(
         "--model",
         type=str,
@@ -42,6 +41,7 @@ def parse_arg():
         help="(Our custom models only) File name of PyTorch model (.py). Should be located at model directory.",
         default="model.pt",
     )
+    parser.add_argument("--temperature", type=str, default="0.2")
     parser.add_argument(
         "--task",
         type=str,
@@ -49,15 +49,10 @@ def parse_arg():
         required=True,
     )
     parser.add_argument("--lang", type=str, default="python", help="Target language")
-
-    # GPU Option
+    parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument(
         "--gpus", type=str, help="Comma seperated indexes of GPU(s) to use"
     )
-
-    # (Optional) Flags
-    parser.add_argument("--temperature", type=str, default="0.2")
-    parser.add_argument("--batch_size", type=str, default="64")
 
     args = parser.parse_args()
 
@@ -79,7 +74,7 @@ def parse_arg():
             allowed_langs = ["c", "python", "java", "go"]
         CHECK(
             args.lang in allowed_langs,
-            f"For {args.task}, target language must be one of {allowed_langs}, received `{args.lang}'",
+            f"For {args.task}, target language must be one of {allowed_langs}, received `{args.lang}'.",
         )
 
         if args.task == "mercury":
@@ -90,6 +85,12 @@ def parse_arg():
 
         if args.task == "codexglue":
             args.task = f"codexglue_code_to_text-{args.lang}"
+
+    if args.model == "starcoderbase-3b" and (args.task == "mercury" or args.task.startswith("codexglue")):
+        bs = 32
+        if args.batch_size > bs:
+            NOTE(f"Set `batch_size' to {bs}, for preventing CUDA out of memory.")
+            args.batch_size = bs
 
     return args
 
