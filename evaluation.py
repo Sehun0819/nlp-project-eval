@@ -50,6 +50,7 @@ def parse_arg():
     )
     parser.add_argument("--lang", type=str, default="python", help="Target language")
     parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--seq_len", type=int, default=128)
     parser.add_argument(
         "--gpus", type=str, help="Comma seperated indexes of GPU(s) to use"
     )
@@ -65,7 +66,11 @@ def parse_arg():
         f"Task must be one of {allowed_tasks}, received `{args.task}'",
     )
 
-    if args.task != "inspect":
+    if args.task == "inspect":
+        NOTE(f"For `inspect', use only one GPU `{args.gpus[0]}'")
+        args.gpus = [args.gpus[0]]
+
+    if args.task in ["humaneval", "mercury", "codexglue"]:
         if args.task == "humaneval" or args.task == "mercury":
             allowed_langs = ["python"]
         elif args.task == "codexglue":
@@ -86,7 +91,9 @@ def parse_arg():
         if args.task == "codexglue":
             args.task = f"codexglue_code_to_text-{args.lang}"
 
-    if args.model == "starcoderbase-3b" and (args.task == "mercury" or args.task.startswith("codexglue")):
+    if args.model == "starcoderbase-3b" and (
+        args.task == "mercury" or args.task.startswith("codexglue")
+    ):
         bs = 32
         if args.batch_size > bs:
             NOTE(f"Set `batch_size' to {bs}, for preventing CUDA out of memory.")
@@ -112,7 +119,17 @@ def image_name():
 
 
 def container_name(mode, model, temperature, task, gpus):
-    return f"{mode}-{model}-t{temperature}-{task}-gpus{gpus}"
+    if mode:
+        name = f"{mode}-{model}"
+    else:
+        name = f"{model}"
+
+    if temperature:
+        name += f"-t{temperature}-{task}-gpus{gpus}"
+    else:
+        name += f"-{task}-gpus{gpus}"
+
+    return name
 
 
 def container_home():
@@ -254,6 +271,32 @@ def eval_generations(gpus: List[int], model: str, temperature: str, task: str):
     exec_and_wait(cmd)
 
 
+def inspect(gpus: List[int], model: str, pt: str, batch_size: int, seq_len: int):
+    local_pt_path = f"{home_path()}/{models_dir()}/{model}/{pt}"
+    if os.path.isfile(local_pt_path):
+        pt_flag = [f"--pt {container_home()}/{model}/{pt}"]
+    else:
+        pt_flag = []
+
+    flags = [
+        f"--model {container_home()}/{model}",
+        f"--batch_size {batch_size}",
+        f"--seq_len {seq_len}",
+    ] + pt_flag
+
+    inspect_cmd = (
+        "python3 inspect_model.py "
+        + " ".join(flags)
+        + f" > {container_home()}/{container_output_dir()}/{model}_b{batch_size}_s{seq_len}.txt 2>&1"
+    )
+
+    cmd = (
+        docker_run_cmd(gpus, model, "", "inspect", "") + ' sh -c "' + inspect_cmd + '"'
+    )
+    print(cmd)
+    exec_and_wait(cmd)
+
+
 def mk_output_dir(task):
     dir_path = home_path() / output_dir(task)
     if not os.path.isdir(dir_path):
@@ -274,7 +317,7 @@ def main():
     mk_output_dir(args.task)
 
     if args.task == "inspect":
-        NOT_IMPLEMENTED()
+        inspect(args.gpus, args.model, args.pt, args.batch_size, args.seq_len)
     elif args.task in ["humaneval", "mercury"] or args.task.startswith("codexglue"):
         return_code = run_LLM(
             args.gpus,

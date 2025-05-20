@@ -1,0 +1,757 @@
+[2025-05-20 12:32:59,393] [INFO] [real_accelerator.py:239:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+df: /root/.triton/autotune: No such file or directory
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 26.12it/s]
+The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. To disable this, use `mean_resizing=False`
+Asking to truncate to max_length but no maximum length is provided and the model has no predefined maximum length. Default to no truncation.
+[2025-05-20 12:33:09,209] [INFO] [profiler.py:1254:get_model_profile] Flops profiler warming-up...
+[2025-05-20 12:33:33,425] [INFO] [profiler.py:82:start_profile] Flops profiler started
+
+-------------------------- DeepSpeed Flops Profiler --------------------------
+Profile Summary at step 1:
+Notations:
+data parallel size (dp_size), model parallel size(mp_size),
+number of parameters (params), number of multiply-accumulate operations(MACs),
+number of floating-point operations (flops), floating-point operations per second (FLOPS),
+fwd latency (forward propagation latency), bwd latency (backward propagation latency),
+step (weights update latency), iter latency (sum of fwd, bwd and step latency)
+
+params per GPU:                                                         3.04 B  
+params of model = params per GPU * mp_size:                             0       
+fwd MACs per GPU:                                                       24.55 TMACs
+fwd flops per GPU:                                                      49.12 T 
+fwd flops of model = fwd flops per GPU * mp_size:                       49.12 T 
+fwd latency:                                                            24.72 s 
+fwd FLOPS per GPU = fwd flops per GPU / fwd latency:                    1.99 TFLOPS
+
+----------------------------- Aggregated Profile per GPU -----------------------------
+Top 1 modules in terms of params, MACs or fwd latency at different model depths:
+depth 0:
+    params      - {'GPTBigCodeForCausalLM': '3.04 B'}
+    MACs        - {'GPTBigCodeForCausalLM': '24.55 TMACs'}
+    fwd latency - {'GPTBigCodeForCausalLM': '24.72 s'}
+depth 1:
+    params      - {'GPTBigCodeModel': '3.04 B'}
+    MACs        - {'GPTBigCodeModel': '23.44 TMACs'}
+    fwd latency - {'GPTBigCodeModel': '23.87 s'}
+depth 2:
+    params      - {'ModuleList': '2.88 B'}
+    MACs        - {'ModuleList': '23.44 TMACs'}
+    fwd latency - {'ModuleList': '23.77 s'}
+depth 3:
+    params      - {'GPTBigCodeBlock': '2.88 B'}
+    MACs        - {'GPTBigCodeBlock': '23.44 TMACs'}
+    fwd latency - {'GPTBigCodeBlock': '23.77 s'}
+depth 4:
+    params      - {'GPTBigCodeMLP': '2.28 B'}
+    MACs        - {'GPTBigCodeMLP': '18.42 TMACs'}
+    fwd latency - {'GPTBigCodeMLP': '14.61 s'}
+
+------------------------------ Detailed Profile per GPU ------------------------------
+Each module profile is listed after its name in the following order: 
+params, percentage of total params, MACs, percentage of total MACs, fwd latency, percentage of total fwd latency, fwd FLOPS
+
+Note: 1. A module can have torch.nn.module or torch.nn.functional to compute logits (e.g. CrossEntropyLoss). They are not counted as submodules, thus not to be printed out. However they make up the difference between a parent's MACs (or latency) and the sum of its submodules'.
+2. Number of floating-point operations is a theoretical estimation, thus FLOPS computed using that could be larger than the maximum system throughput.
+3. The fwd latency listed in the top module's profile is directly captured at the module forward function in PyTorch, thus it's less than the fwd latency shown above which is captured in DeepSpeed.
+
+GPTBigCodeForCausalLM(
+  3.04 B = 100% Params, 24.55 TMACs = 100% MACs, 24.72 s = 100% latency, 1.99 TFLOPS
+  (transformer): GPTBigCodeModel(
+    3.04 B = 100% Params, 23.44 TMACs = 95.45% MACs, 23.87 s = 96.55% latency, 1.96 TFLOPS
+    (wte): Embedding(138.41 M = 4.55% Params, 0 MACs = 0% MACs, 17.66 ms = 0.07% latency, 0 FLOPS, 49153, 2816)
+    (wpe): Embedding(23.07 M = 0.76% Params, 0 MACs = 0% MACs, 11.69 ms = 0.05% latency, 0 FLOPS, 8192, 2816)
+    (drop): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 150.68 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+    (h): ModuleList(
+      (0): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 653.74 ms = 2.64% latency, 1.99 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 23.02 ms = 0.09% latency, 4.93 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 162.65 ms = 0.66% latency, 1.71 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 69.9 ms = 0.28% latency, 2 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 64.78 ms = 0.26% latency, 1.97 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 78.2 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 21.96 ms = 0.09% latency, 5.17 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 386.39 ms = 1.56% latency, 2.65 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 193.72 ms = 0.78% latency, 2.64 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 146.41 ms = 0.59% latency, 3.49 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 45.78 ms = 0.19% latency, 1.98 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 81.54 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (1): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 649.95 ms = 2.63% latency, 2 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 15.98 ms = 0.06% latency, 7.11 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 159.44 ms = 0.65% latency, 1.75 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 67.99 ms = 0.28% latency, 2.05 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 66.06 ms = 0.27% latency, 1.94 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 92.74 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 25.65 ms = 0.1% latency, 4.43 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 396.41 ms = 1.6% latency, 2.58 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 197.76 ms = 0.8% latency, 2.59 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 151.45 ms = 0.61% latency, 3.38 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 46.76 ms = 0.19% latency, 1.94 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 78.92 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (2): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 626.73 ms = 2.54% latency, 2.08 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 15.08 ms = 0.06% latency, 7.53 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 160.79 ms = 0.65% latency, 1.73 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 66.31 ms = 0.27% latency, 2.1 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 69.32 ms = 0.28% latency, 1.84 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 68.9 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 21.01 ms = 0.08% latency, 5.4 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 375.35 ms = 1.52% latency, 2.73 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 187.25 ms = 0.76% latency, 2.73 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 146.81 ms = 0.59% latency, 3.48 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 40.84 ms = 0.17% latency, 2.22 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 90.6 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (3): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 630.71 ms = 2.55% latency, 2.06 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.99 ms = 0.06% latency, 7.58 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 155.19 ms = 0.63% latency, 1.8 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 65.9 ms = 0.27% latency, 2.12 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 63.14 ms = 0.26% latency, 2.03 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 90.36 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 25.42 ms = 0.1% latency, 4.47 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 384.39 ms = 1.56% latency, 2.66 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 185.96 ms = 0.75% latency, 2.75 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 161.02 ms = 0.65% latency, 3.18 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 37.02 ms = 0.15% latency, 2.45 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 72.72 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (4): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 628.25 ms = 2.54% latency, 2.07 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 15.32 ms = 0.06% latency, 7.41 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 158.02 ms = 0.64% latency, 1.76 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 70.72 ms = 0.29% latency, 1.97 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 61.13 ms = 0.25% latency, 2.09 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 80.82 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 27.04 ms = 0.11% latency, 4.2 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 377.98 ms = 1.53% latency, 2.71 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 175.06 ms = 0.71% latency, 2.92 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 155.67 ms = 0.63% latency, 3.29 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 46.81 ms = 0.19% latency, 1.94 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 81.3 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (5): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 628.49 ms = 2.54% latency, 2.07 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 19.79 ms = 0.08% latency, 5.74 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 154.06 ms = 0.62% latency, 1.81 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 64.33 ms = 0.26% latency, 2.17 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 62.67 ms = 0.25% latency, 2.04 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 84.4 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 20.03 ms = 0.08% latency, 5.67 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 383.58 ms = 1.55% latency, 2.67 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 196.66 ms = 0.8% latency, 2.6 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 147.16 ms = 0.6% latency, 3.48 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 39.26 ms = 0.16% latency, 2.31 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 93.46 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (6): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 680.8 ms = 2.75% latency, 1.91 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.27 ms = 0.06% latency, 7.95 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 165.97 ms = 0.67% latency, 1.68 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 64.97 ms = 0.26% latency, 2.15 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 74.5 ms = 0.3% latency, 1.72 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 71.05 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 19.86 ms = 0.08% latency, 5.72 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 409.3 ms = 1.66% latency, 2.5 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 198.19 ms = 0.8% latency, 2.58 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 164.66 ms = 0.67% latency, 3.11 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 46.03 ms = 0.19% latency, 1.97 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 77.72 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (7): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 619.21 ms = 2.51% latency, 2.1 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.94 ms = 0.06% latency, 7.6 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 167.24 ms = 0.68% latency, 1.67 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 82.92 ms = 0.34% latency, 1.68 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 58.44 ms = 0.24% latency, 2.19 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 79.39 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 19.49 ms = 0.08% latency, 5.82 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 367.02 ms = 1.48% latency, 2.79 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 181.19 ms = 0.73% latency, 2.82 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 147.25 ms = 0.6% latency, 3.47 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 38.15 ms = 0.15% latency, 2.38 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 85.35 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (8): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 619.77 ms = 2.51% latency, 2.1 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.95 ms = 0.06% latency, 7.59 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 150.03 ms = 0.61% latency, 1.86 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 65.05 ms = 0.26% latency, 2.14 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 60.23 ms = 0.24% latency, 2.12 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 81.3 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 25.39 ms = 0.1% latency, 4.47 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 373.24 ms = 1.51% latency, 2.74 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 178.76 ms = 0.72% latency, 2.86 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 154.98 ms = 0.63% latency, 3.3 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 39.09 ms = 0.16% latency, 2.32 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 79.63 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (9): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 651.04 ms = 2.63% latency, 2 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.53 ms = 0.06% latency, 7.82 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 166.99 ms = 0.68% latency, 1.67 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 75.82 ms = 0.31% latency, 1.84 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 63.11 ms = 0.26% latency, 2.03 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 84.88 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 19.26 ms = 0.08% latency, 5.9 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 400.9 ms = 1.62% latency, 2.55 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 201.99 ms = 0.82% latency, 2.53 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 157.98 ms = 0.64% latency, 3.24 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 40.39 ms = 0.16% latency, 2.25 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 136.61 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (10): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 637.28 ms = 2.58% latency, 2.04 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 15.44 ms = 0.06% latency, 7.36 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 159.83 ms = 0.65% latency, 1.74 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 72.86 ms = 0.29% latency, 1.91 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 61.9 ms = 0.25% latency, 2.07 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 83.92 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 19.19 ms = 0.08% latency, 5.92 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 392.03 ms = 1.59% latency, 2.61 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 189.21 ms = 0.77% latency, 2.7 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 163.59 ms = 0.66% latency, 3.13 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 38.76 ms = 0.16% latency, 2.34 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 95.13 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (11): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 612.7 ms = 2.48% latency, 2.13 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.67 ms = 0.06% latency, 7.74 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 155.15 ms = 0.63% latency, 1.8 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 65.89 ms = 0.27% latency, 2.12 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 63.9 ms = 0.26% latency, 2 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 86.31 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 18.51 ms = 0.07% latency, 6.13 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 374.31 ms = 1.51% latency, 2.73 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 193.9 ms = 0.78% latency, 2.64 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 141.1 ms = 0.57% latency, 3.63 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 38.84 ms = 0.16% latency, 2.34 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 80.11 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (12): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 640.99 ms = 2.59% latency, 2.03 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 13.81 ms = 0.06% latency, 8.22 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 160.31 ms = 0.65% latency, 1.74 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 65.64 ms = 0.27% latency, 2.13 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 64.01 ms = 0.26% latency, 2 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 81.3 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 13.99 ms = 0.06% latency, 8.12 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 401.68 ms = 1.63% latency, 2.55 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 192.05 ms = 0.78% latency, 2.66 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 166.19 ms = 0.67% latency, 3.08 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 42.95 ms = 0.17% latency, 2.11 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 86.55 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (13): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 625.27 ms = 2.53% latency, 2.08 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.37 ms = 0.06% latency, 7.9 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 160.08 ms = 0.65% latency, 1.74 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 68.89 ms = 0.28% latency, 2.03 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 65.92 ms = 0.27% latency, 1.94 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 85.12 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 19.9 ms = 0.08% latency, 5.7 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 377.19 ms = 1.53% latency, 2.71 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 191.79 ms = 0.78% latency, 2.67 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 145.57 ms = 0.59% latency, 3.51 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 39.38 ms = 0.16% latency, 2.31 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 84.4 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (14): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 631.79 ms = 2.56% latency, 2.06 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.67 ms = 0.06% latency, 7.74 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 164.38 ms = 0.67% latency, 1.7 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 73.1 ms = 0.3% latency, 1.91 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 68.97 ms = 0.28% latency, 1.85 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 99.9 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 19.71 ms = 0.08% latency, 5.76 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 385.5 ms = 1.56% latency, 2.65 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 181.99 ms = 0.74% latency, 2.81 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 163.71 ms = 0.66% latency, 3.12 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 39.35 ms = 0.16% latency, 2.31 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 89.41 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (15): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 647.14 ms = 2.62% latency, 2.01 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.59 ms = 0.06% latency, 7.78 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 169.18 ms = 0.68% latency, 1.65 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 74.05 ms = 0.3% latency, 1.88 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 68.58 ms = 0.28% latency, 1.86 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 87.26 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 20.02 ms = 0.08% latency, 5.67 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 391.36 ms = 1.58% latency, 2.61 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 193.72 ms = 0.78% latency, 2.64 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 157.54 ms = 0.64% latency, 3.25 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 39.68 ms = 0.16% latency, 2.29 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 77.72 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (16): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 643.44 ms = 2.6% latency, 2.02 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.47 ms = 0.06% latency, 7.85 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 163.4 ms = 0.66% latency, 1.71 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 66.66 ms = 0.27% latency, 2.09 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 70.28 ms = 0.28% latency, 1.82 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 77.25 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 20.02 ms = 0.08% latency, 5.67 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 396.4 ms = 1.6% latency, 2.58 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 194.94 ms = 0.79% latency, 2.62 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 157.93 ms = 0.64% latency, 3.24 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 43.05 ms = 0.17% latency, 2.11 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 83.68 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (17): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 658.13 ms = 2.66% latency, 1.98 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.51 ms = 0.06% latency, 7.82 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 159.54 ms = 0.65% latency, 1.75 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 65.8 ms = 0.27% latency, 2.12 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 63.39 ms = 0.26% latency, 2.02 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 72 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 24.14 ms = 0.1% latency, 4.7 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 414.71 ms = 1.68% latency, 2.47 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 209.79 ms = 0.85% latency, 2.44 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 156.34 ms = 0.63% latency, 3.27 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 48.13 ms = 0.19% latency, 1.89 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 80.59 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (18): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 653.68 ms = 2.64% latency, 1.99 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 20.44 ms = 0.08% latency, 5.55 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 165.19 ms = 0.67% latency, 1.69 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 74.53 ms = 0.3% latency, 1.87 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 62.81 ms = 0.25% latency, 2.04 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 76.77 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 20.48 ms = 0.08% latency, 5.54 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 390.48 ms = 1.58% latency, 2.62 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 193.75 ms = 0.78% latency, 2.64 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 150.52 ms = 0.61% latency, 3.4 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 45.73 ms = 0.19% latency, 1.99 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 80.59 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (19): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 657.77 ms = 2.66% latency, 1.98 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.88 ms = 0.06% latency, 7.63 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 168.17 ms = 0.68% latency, 1.66 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 68.81 ms = 0.28% latency, 2.03 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 65.02 ms = 0.26% latency, 1.97 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 78.68 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 15.53 ms = 0.06% latency, 7.31 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 395.85 ms = 1.6% latency, 2.58 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 199.09 ms = 0.81% latency, 2.57 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 161.06 ms = 0.65% latency, 3.18 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 35.28 ms = 0.14% latency, 2.57 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 80.59 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (20): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 623.07 ms = 2.52% latency, 2.09 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.02 ms = 0.06% latency, 8.1 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 155.04 ms = 0.63% latency, 1.8 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 66.37 ms = 0.27% latency, 2.1 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 61.6 ms = 0.25% latency, 2.08 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 86.55 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 24.63 ms = 0.1% latency, 4.61 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 383.78 ms = 1.55% latency, 2.67 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 190.62 ms = 0.77% latency, 2.68 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 150.92 ms = 0.61% latency, 3.39 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 41.83 ms = 0.17% latency, 2.17 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 72 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (21): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 637.8 ms = 2.58% latency, 2.04 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 15.24 ms = 0.06% latency, 7.45 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 164.58 ms = 0.67% latency, 1.69 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 73.05 ms = 0.3% latency, 1.91 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 69.53 ms = 0.28% latency, 1.84 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 83.45 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 20.44 ms = 0.08% latency, 5.56 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 384.88 ms = 1.56% latency, 2.66 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 191.36 ms = 0.77% latency, 2.67 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 149.42 ms = 0.6% latency, 3.42 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 43.61 ms = 0.18% latency, 2.08 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 86.31 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (22): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 624.37 ms = 2.53% latency, 2.09 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.52 ms = 0.06% latency, 7.82 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 157.45 ms = 0.64% latency, 1.77 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 68.75 ms = 0.28% latency, 2.03 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 62.31 ms = 0.25% latency, 2.05 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 82.97 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 15.38 ms = 0.06% latency, 7.38 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 381.7 ms = 1.54% latency, 2.68 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 193.3 ms = 0.78% latency, 2.65 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 152.76 ms = 0.62% latency, 3.35 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 35.16 ms = 0.14% latency, 2.58 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 82.49 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (23): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 644.75 ms = 2.61% latency, 2.02 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 13.8 ms = 0.06% latency, 8.23 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 165.88 ms = 0.67% latency, 1.68 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 75.24 ms = 0.3% latency, 1.85 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 65.11 ms = 0.26% latency, 1.96 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 98.71 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 20.05 ms = 0.08% latency, 5.66 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 403.73 ms = 1.63% latency, 2.53 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 194.24 ms = 0.79% latency, 2.63 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 169.79 ms = 0.69% latency, 3.01 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 39.26 ms = 0.16% latency, 2.31 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 80.59 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (24): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 635.21 ms = 2.57% latency, 2.05 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.38 ms = 0.06% latency, 7.89 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 157.72 ms = 0.64% latency, 1.77 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 67.29 ms = 0.27% latency, 2.07 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 61 ms = 0.25% latency, 2.1 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 80.59 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 25.57 ms = 0.1% latency, 4.44 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 386.67 ms = 1.56% latency, 2.65 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 183.07 ms = 0.74% latency, 2.79 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 162.75 ms = 0.66% latency, 3.14 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 40.41 ms = 0.16% latency, 2.25 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 77.25 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (25): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 635.11 ms = 2.57% latency, 2.05 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.08 ms = 0.06% latency, 8.06 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 153.27 ms = 0.62% latency, 1.82 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 64.52 ms = 0.26% latency, 2.16 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 63.07 ms = 0.26% latency, 2.03 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 76.06 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 18.91 ms = 0.08% latency, 6.01 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 394.28 ms = 1.6% latency, 2.6 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 196.29 ms = 0.79% latency, 2.61 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 153.63 ms = 0.62% latency, 3.33 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 43.9 ms = 0.18% latency, 2.07 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 80.59 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (26): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 1.04 s = 4.22% latency, 1.25 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 20.02 ms = 0.08% latency, 5.67 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 162.77 ms = 0.66% latency, 1.71 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 67.6 ms = 0.27% latency, 2.06 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 69 ms = 0.28% latency, 1.85 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 80.35 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.52 ms = 0.06% latency, 7.82 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 785.42 ms = 3.18% latency, 1.3 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 199.7 ms = 0.81% latency, 2.56 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 158.94 ms = 0.64% latency, 3.22 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 426.32 ms = 1.72% latency, 213.06 MFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 87.74 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (27): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 703.82 ms = 2.85% latency, 1.85 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.42 ms = 0.06% latency, 7.87 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 175.15 ms = 0.71% latency, 1.59 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 74.76 ms = 0.3% latency, 1.87 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 75.19 ms = 0.3% latency, 1.7 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 77.96 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 43.14 ms = 0.17% latency, 2.63 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 404.07 ms = 1.63% latency, 2.53 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 177.16 ms = 0.72% latency, 2.89 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 183.03 ms = 0.74% latency, 2.79 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 43.25 ms = 0.17% latency, 2.1 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 81.54 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (28): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 698.08 ms = 2.82% latency, 1.87 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.73 ms = 0.06% latency, 7.71 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 162.37 ms = 0.66% latency, 1.72 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 66.84 ms = 0.27% latency, 2.09 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 69.68 ms = 0.28% latency, 1.84 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 81.54 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 22.78 ms = 0.09% latency, 4.98 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 435.88 ms = 1.76% latency, 2.35 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 205.55 ms = 0.83% latency, 2.49 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 180.59 ms = 0.73% latency, 2.83 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 49.27 ms = 0.2% latency, 1.84 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 85.12 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (29): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 635.46 ms = 2.57% latency, 2.05 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 15.19 ms = 0.06% latency, 7.48 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 159.24 ms = 0.64% latency, 1.75 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 68.13 ms = 0.28% latency, 2.05 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 59.38 ms = 0.24% latency, 2.15 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 79.39 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 18.28 ms = 0.07% latency, 6.21 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 383.8 ms = 1.55% latency, 2.67 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 192.24 ms = 0.78% latency, 2.66 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 158.28 ms = 0.64% latency, 3.23 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 32.84 ms = 0.13% latency, 2.77 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 83.92 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (30): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 646.68 ms = 2.62% latency, 2.01 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 14.38 ms = 0.06% latency, 7.89 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 157.9 ms = 0.64% latency, 1.77 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 71.57 ms = 0.29% latency, 1.95 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 60.19 ms = 0.24% latency, 2.12 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 93.7 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 20.58 ms = 0.08% latency, 5.52 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 388.38 ms = 1.57% latency, 2.63 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 187.37 ms = 0.76% latency, 2.73 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 160.05 ms = 0.65% latency, 3.2 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 40.39 ms = 0.16% latency, 2.25 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 149.25 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (31): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 681.19 ms = 2.76% latency, 1.91 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 13.66 ms = 0.06% latency, 8.31 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 170.91 ms = 0.69% latency, 1.63 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 81.14 ms = 0.33% latency, 1.72 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 69.16 ms = 0.28% latency, 1.85 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 79.39 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 20 ms = 0.08% latency, 5.68 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 421.34 ms = 1.7% latency, 2.43 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 192.65 ms = 0.78% latency, 2.66 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 186.68 ms = 0.76% latency, 2.74 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 41.48 ms = 0.17% latency, 2.19 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 100.61 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (32): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 672.4 ms = 2.72% latency, 1.94 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 13.38 ms = 0.05% latency, 8.48 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 166.18 ms = 0.67% latency, 1.68 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 73.11 ms = 0.3% latency, 1.91 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 66.95 ms = 0.27% latency, 1.91 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 79.87 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 24.09 ms = 0.1% latency, 4.71 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 414.79 ms = 1.68% latency, 2.47 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 196.42 ms = 0.79% latency, 2.6 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 181.75 ms = 0.74% latency, 2.81 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 36.14 ms = 0.15% latency, 2.51 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 90.12 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (33): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 693.82 ms = 2.81% latency, 1.88 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 15.95 ms = 0.06% latency, 7.12 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 173.48 ms = 0.7% latency, 1.61 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 75.12 ms = 0.3% latency, 1.86 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 71.07 ms = 0.29% latency, 1.8 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 85.83 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 20.92 ms = 0.08% latency, 5.43 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 420.65 ms = 1.7% latency, 2.43 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 221.9 ms = 0.9% latency, 2.31 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 160.44 ms = 0.65% latency, 3.19 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 37.86 ms = 0.15% latency, 2.4 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 83.21 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (34): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 706.45 ms = 2.86% latency, 1.84 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 15.77 ms = 0.06% latency, 7.2 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 174.06 ms = 0.7% latency, 1.6 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 69.68 ms = 0.28% latency, 2 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 76.24 ms = 0.31% latency, 1.68 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 72.24 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 27.22 ms = 0.11% latency, 4.17 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 422.3 ms = 1.71% latency, 2.42 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 202.25 ms = 0.82% latency, 2.53 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 172.46 ms = 0.7% latency, 2.97 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 47.14 ms = 0.19% latency, 1.93 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 88.21 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+      (35): GPTBigCodeBlock(
+        80.05 M = 2.63% Params, 651 GMACs = 2.65% MACs, 693.62 ms = 2.81% latency, 1.88 TFLOPS
+        (ln_1): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 19.05 ms = 0.08% latency, 5.96 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (attn): GPTBigCodeSdpaAttention(
+          16.59 M = 0.55% Params, 139.43 GMACs = 0.57% MACs, 156.79 ms = 0.63% latency, 1.78 TFLOPS
+          (c_attn): Linear(8.65 M = 0.28% Params, 69.76 GMACs = 0.28% MACs, 66.39 ms = 0.27% latency, 2.1 TFLOPS, in_features=2816, out_features=3072, bias=True)
+          (c_proj): Linear(7.93 M = 0.26% Params, 63.95 GMACs = 0.26% MACs, 62.79 ms = 0.25% latency, 2.04 TFLOPS, in_features=2816, out_features=2816, bias=True)
+          (attn_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 0 s = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+          (resid_dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 84.88 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 25.76 ms = 0.1% latency, 4.41 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPTBigCodeMLP(
+          63.45 M = 2.08% Params, 511.57 GMACs = 2.08% MACs, 425.4 ms = 1.72% latency, 2.41 TFLOPS
+          (c_fc): Linear(31.73 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 199.11 ms = 0.81% latency, 2.57 TFLOPS, in_features=2816, out_features=11264, bias=True)
+          (c_proj): Linear(31.72 M = 1.04% Params, 255.79 GMACs = 1.04% MACs, 175.38 ms = 0.71% latency, 2.92 TFLOPS, in_features=11264, out_features=2816, bias=True)
+          (act): PytorchGELUTanh(0 = 0% Params, 0 MACs = 0% MACs, 50.42 ms = 0.2% latency, 1.8 GFLOPS)
+          (dropout): Dropout(0 = 0% Params, 0 MACs = 0% MACs, 86.78 us = 0% latency, 0 FLOPS, p=0.1, inplace=False)
+        )
+      )
+    )
+    (ln_f): LayerNorm(5.63 K = 0% Params, 0 MACs = 0% MACs, 15.49 ms = 0.06% latency, 7.33 GFLOPS, (2816,), eps=1e-05, elementwise_affine=True)
+  )
+  (lm_head): Linear(138.41 M = 4.55% Params, 1.12 TMACs = 4.55% MACs, 851.74 ms = 3.45% latency, 2.62 TFLOPS, in_features=2816, out_features=49153, bias=False)
+)
+------------------------------------------------------------------------------
+[2025-05-20 12:34:02,135] [INFO] [profiler.py:230:end_profile] Flops profiler finished
+
+Total Running Time : 60.79 sec = 1.01 min = 0.02 hr
