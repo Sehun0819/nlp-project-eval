@@ -1,0 +1,39 @@
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]/root/anaconda3/envs/fuzz4all/lib/python3.10/site-packages/torch/_utils.py:831: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  return self.fget.__get__(instance, owner)()
+Loading checkpoint shards:  50%|█████     | 1/2 [00:00<00:00,  4.08it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00,  4.96it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00,  4.80it/s]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+
+{'fuzzing': {'output_folder': '/root/output/starcoderbase-3b_cpp_t1/corpus', 'num': 100000, 'total_time': 4, 'log_level': 1, 'otf': True, 'resume': True, 'evaluate': False, 'use_hand_written_prompt': False, 'no_input_prompt': False, 'prompt_strategy': 2, 'target_name': '/home/gcc-13/bin/g++'}, 'target': {'language': 'cpp', 'path_documentation': 'config/documentation/cpp/cpp_23.md', 'path_example_code': None, 'trigger_to_generate_input': '/* Please create a very short program which uses new C++ features in a complex way */', 'input_hint': '#include <iostream>', 'path_hand_written_prompt': None, 'target_string': ''}, 'llm': {'temperature': 1, 'batch_size': 64, 'device': 'cuda', 'model_name': '/root/starcoderbase-3b', 'max_length': 1024}}
+=== Target Config ===
+language: cpp
+folder: /root/output/starcoderbase-3b_cpp_t1/corpus
+bs: 64
+temperature: 1
+device: cuda
+model_name: /root/starcoderbase-3b
+max_length: 1024
+use_hw: False
+no_input_prompt: False
+prompt_strategy: 2
+level: 1
+template: fuzzing_with_config_file
+config_dict: {'fuzzing': {'output_folder': '/root/output/starcoderbase-3b_cpp_t1/corpus', 'num': 100000, 'total_time': 4, 'log_level': 1, 'otf': True, 'resume': True, 'evaluate': False, 'use_hand_written_prompt': False, 'no_input_prompt': False, 'prompt_strategy': 2, 'target_name': '/home/gcc-13/bin/g++'}, 'target': {'language': 'cpp', 'path_documentation': 'config/documentation/cpp/cpp_23.md', 'path_example_code': None, 'trigger_to_generate_input': '/* Please create a very short program which uses new C++ features in a complex way */', 'input_hint': '#include <iostream>', 'path_hand_written_prompt': None, 'target_string': ''}, 'llm': {'temperature': 1, 'batch_size': 64, 'device': 'cuda', 'model_name': '/root/starcoderbase-3b', 'max_length': 1024}}
+target_name: /home/gcc-13/bin/g++
+====================
+[INFO] Initializing ... this may take a while ...
+[INFO] Loading model ...
+=== Model Config ===
+model_name: /root/starcoderbase-3b
+model_name: /root/starcoderbase-3b
+eos: ['/* Please create a very short program which uses new C++ features in a complex way */', '<eom>', '/* Please create a semantically equivalent program to the previous generation */', '/* Please create a mutated program that modifies the previous generation */', '/* Please combine the two previous programs into a single program */']
+device: cuda
+max_length: 1024
+model_obj (class name): StarCoder
+====================
+[INFO] Model Loaded
+[INFO] Use auto-prompting prompt ... 
+Generating prompts... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:05:35
+[INFO] Done
+ (resuming from 0)
+Fuzzing •  10% ━━━╸                                       9856/100000 • 4:00:15
+

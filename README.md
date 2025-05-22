@@ -22,7 +22,7 @@ popd
 mv <path_to_model> ./models/<model_name>
 ```
 
-# Inspect model size
+# Inspect model size (number of params, flops)
 
 Result will be written to `_out-inspect`.
 
@@ -32,8 +32,9 @@ python3 evaluation.py --model=starcoderbase-1b --task=inspect --gpus=5
 
 # Evaluate a task
 
+Task should be one of {humaneval, mercury, codexglue, fuzzing}.
 Result will be written to `_out-<task>`.
 
 ```bash
-python3 evaluation.py --model=starcoderbase-1b --temperature=0.2 --task=humaneval --gpus=5
+python3 evaluation.py --model=starcoderbase-1b --task=humaneval --gpus=5
 ```

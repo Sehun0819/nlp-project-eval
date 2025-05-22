@@ -1,0 +1,37 @@
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+
+{'fuzzing': {'output_folder': '/root/output/decomposed_256_cpp_t1/corpus', 'num': 100000, 'total_time': 4, 'log_level': 1, 'otf': True, 'resume': True, 'evaluate': False, 'use_hand_written_prompt': False, 'no_input_prompt': False, 'prompt_strategy': 2, 'target_name': '/home/gcc-13/bin/g++'}, 'target': {'language': 'cpp', 'path_documentation': 'config/documentation/cpp/cpp_23.md', 'path_example_code': None, 'trigger_to_generate_input': '/* Please create a very short program which uses new C++ features in a complex way */', 'input_hint': '#include <iostream>', 'path_hand_written_prompt': None, 'target_string': ''}, 'llm': {'temperature': 1, 'batch_size': 64, 'device': 'cuda', 'model_name': '/root/decomposed_256', 'max_length': 1024}}
+=== Target Config ===
+language: cpp
+folder: /root/output/decomposed_256_cpp_t1/corpus
+bs: 64
+temperature: 1
+device: cuda
+model_name: /root/decomposed_256
+max_length: 1024
+use_hw: False
+no_input_prompt: False
+prompt_strategy: 2
+level: 1
+template: fuzzing_with_config_file
+config_dict: {'fuzzing': {'output_folder': '/root/output/decomposed_256_cpp_t1/corpus', 'num': 100000, 'total_time': 4, 'log_level': 1, 'otf': True, 'resume': True, 'evaluate': False, 'use_hand_written_prompt': False, 'no_input_prompt': False, 'prompt_strategy': 2, 'target_name': '/home/gcc-13/bin/g++'}, 'target': {'language': 'cpp', 'path_documentation': 'config/documentation/cpp/cpp_23.md', 'path_example_code': None, 'trigger_to_generate_input': '/* Please create a very short program which uses new C++ features in a complex way */', 'input_hint': '#include <iostream>', 'path_hand_written_prompt': None, 'target_string': ''}, 'llm': {'temperature': 1, 'batch_size': 64, 'device': 'cuda', 'model_name': '/root/decomposed_256', 'max_length': 1024}}
+target_name: /home/gcc-13/bin/g++
+====================
+[INFO] Initializing ... this may take a while ...
+[INFO] Loading model ...
+=== Model Config ===
+model_name: /root/decomposed_256
+model_name: /root/decomposed_256
+eos: ['/* Please create a very short program which uses new C++ features in a complex way */', '<eom>', '/* Please create a semantically equivalent program to the previous generation */', '/* Please create a mutated program that modifies the previous generation */', '/* Please combine the two previous programs into a single program */']
+device: cuda
+max_length: 1024
+Found PyTorch model `/root/decomposed_256/model.pt'
+model_obj (class name): StarCoder
+====================
+[INFO] Model Loaded
+[INFO] Use auto-prompting prompt ... 
+Generating prompts... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:04:04
+[INFO] Done
+ (resuming from 0)
+Fuzzing •  16% ━━━━━━                                    16192/100000 • 4:00:44
+
